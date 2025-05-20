@@ -10,13 +10,19 @@
 #define WHITE 7
 #define ARCHIVE "matrix.txt"
 
+typedef struct {
+    int x, y, dist;
+}Node;
+
 void setTextColor(int textColor, int backgroundColor);
 int counter(char *name, int *lin, int *col);
 int readMatrix(char *name, char ***map, int *lin, int *col);
 void printMatrix(char** map, int lin, int col);
 void freeMatrix(char **map, int lin);
-int fuga_humana(char ***map,int lin, int col);
+int findHumanZone(char **map, int lin, int col, int *hx, int *hy, int *zx, int *zy);
+int isValid(char **map, int lin, int col, int x, int y, int **visited);
 int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int endY);
+int fuga_humana(char ***map,int lin, int col);
 
 int main(){
     char **map;
@@ -31,6 +37,8 @@ int main(){
     }
     
     printMatrix(map,lin,col);
+    
+    fuga_humana(&map,lin,col);
     freeMatrix(map,lin);
 
     return 0;
@@ -131,6 +139,70 @@ void freeMatrix(char **map, int lin){
     free(map);
 }
 
-int fuga_humana(char ***map,int lin, int col){
+int findHumanZone(char **map, int lin, int col, int *hx, int *hy, int *zx, int *zy){
+	int findH=0,findZ=0;
+	for(int i=0;i<lin;i++){
+		for(int j=0;j<col;j++){
+			if(map[i][j]=='H'){
+				*hx = i;
+				*hy = j;
+				findH=1;
+			}else if(map[i][j]=='Z'){
+				*zx = i;
+				*zy = j;
+				findZ = 1;
+			}
+			if(findH && findZ){
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+int isValid(char **map, int lin, int col, int x, int y, int **visited){
+	return (x>=0 && x<lin && y>=0 && y<col && (map[x][y]==' ' || map[x][y]=='Z') && !visited[x][y]);
+}
+
+int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int endY){
+	int **visited = (int**)calloc(lin,sizeof(int*));
+	for(int i=0;i<lin;i++){
+		visited[i] = (int*)calloc(col,sizeof(int));
+	}
+	int dir[4] = {-1,1,0,0};
 	
+	Node *queue = (Node*)malloc(lin*col*sizeof(Node));
+	int first = 0, last = 0;
+	
+	queue[last++] = (Node){startX, startY, 0};
+	visited[startX][startY] = 1;
+	
+	Node aux;
+	while(first<last){
+		aux = queue[first++];
+		if(aux.x == endX && aux.y == endY){
+			return aux.dist;
+		}
+		
+		for(int i=0;i<4;i++){
+			int nx = aux.x + dir[i];
+			int ny = aux.y + dir[3-i]; //percorre de tras para frente;
+			if(isValid(*map,lin,col,nx,ny,visited)){
+				visited[nx][ny] = 1;
+				queue[last++] = (Node){nx,ny,aux.dist+1};
+			}
+		}
+	}
+	
+	return -1;
+}
+
+int fuga_humana(char ***map,int lin, int col){
+	int hx,hy,zx,zy;
+	if(!findHumanZone(*map,lin,col,&hx,&hy,&zx,&zy)){
+		return 0;
+	}
+
+	int result = bfs(map,lin,col,hx,hy,zx,zy);
+	printf("bfs = %d\n",result);
 }
