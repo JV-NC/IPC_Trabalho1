@@ -15,6 +15,8 @@ int counter(char *name, int *lin, int *col);
 int readMatrix(char *name, char ***map, int *lin, int *col);
 void printMatrix(char** map, int lin, int col);
 void freeMatrix(char **map, int lin);
+int fuga_humana(char ***map,int lin, int col);
+int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int endY);
 
 int main(){
     char **map;
@@ -127,4 +129,8 @@ void freeMatrix(char **map, int lin){
         free(map[i]);
     }
     free(map);
+}
+
+int fuga_humana(char ***map,int lin, int col){
+	
 }
