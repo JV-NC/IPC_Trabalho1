@@ -11,7 +11,7 @@
 #define ARCHIVE "matrix.txt"
 
 typedef struct {
-    int x, y, dist;
+    int x, y, dist, px, py;
 }Node;
 
 void setTextColor(int textColor, int backgroundColor);
@@ -39,6 +39,9 @@ int main(){
     printMatrix(map,lin,col);
     
     fuga_humana(&map,lin,col);
+    
+    printMatrix(map,lin,col);
+    
     freeMatrix(map,lin);
 
     return 0;
@@ -174,14 +177,30 @@ int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int end
 	Node *queue = (Node*)malloc(lin*col*sizeof(Node));
 	int first = 0, last = 0;
 	
-	queue[last++] = (Node){startX, startY, 0};
+	queue[last++] = (Node){startX, startY, 0, -1, -1};
 	visited[startX][startY] = 1;
 	
 	Node aux;
 	while(first<last){
 		aux = queue[first++];
 		if(aux.x == endX && aux.y == endY){
-			return aux.dist;
+			//recontroi caminho encontrado
+			int cx = aux.x, cy = aux.y;
+			while(aux.px!=-1 && aux.py!=-1){
+				if((*map)[cx][cy]!='Z'){
+					(*map)[cx][cy] = '*';
+				}
+				
+				for(int i=0;i<last;i++){
+					if(queue[i].x==aux.px && queue[i].y==aux.py){
+						aux = queue[i];
+						cx = aux.x;
+						cy= aux.y;
+						break;
+					}
+				}
+			}
+			return queue[first-1].dist;
 		}
 		
 		for(int i=0;i<4;i++){
@@ -189,7 +208,7 @@ int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int end
 			int ny = aux.y + dir[3-i]; //percorre de tras para frente;
 			if(isValid(*map,lin,col,nx,ny,visited)){
 				visited[nx][ny] = 1;
-				queue[last++] = (Node){nx,ny,aux.dist+1};
+				queue[last++] = (Node){nx,ny,aux.dist+1,aux.x,aux.y};
 			}
 		}
 	}
