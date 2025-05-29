@@ -10,19 +10,19 @@
 #define WHITE 7
 #define ARCHIVE "matrix.txt"
 
-typedef struct {
+typedef struct { //no para fila de prioridade, com coordenada do seu antecessor;
     int x, y, dist, px, py;
 }Node;
 
-void setTextColor(int textColor, int backgroundColor);
-int counter(char *name, int *lin, int *col);
-int readMatrix(char *name, char ***map, int *lin, int *col);
-void printMatrix(char** map, int lin, int col);
-void freeMatrix(char **map, int lin);
-int findHumanZone(char **map, int lin, int col, int *hx, int *hy, int *zx, int *zy);
-int isValid(char **map, int lin, int col, int x, int y, int **visited);
-int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int endY);
-int fuga_humana(char ***map,int lin, int col);
+void setTextColor(int textColor, int backgroundColor); //altera a cor do texto e do fundo;
+int counter(char *name, int *lin, int *col); //conta a quantidade de linhas e colunas do arquivo;
+int readMatrix(char *name, char ***map, int *lin, int *col); //le o arquivo e preenche a matriz;
+void printMatrix(char** map, int lin, int col); //imprime matriz;
+void freeMatrix(char **map, int lin); //libera memoria matriz;
+int findHumanZone(char **map, int lin, int col, int *hx, int *hy, int *zx, int *zy); //encontra o humano e a zona segura na matriz;
+int isValid(char **map, int lin, int col, int x, int y, int **visited); //verifica se a posição da matriz é válida para o caminho;
+int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int endY); //busca em largura, retorna distância e preenche caminho;
+int fuga_humana(char ***map,int lin, int col); //aplica findHumanZone e bfs;
 
 int main(){
     char **map;
@@ -38,9 +38,11 @@ int main(){
     
     printMatrix(map,lin,col);
     
-    fuga_humana(&map,lin,col);
-    
-    printMatrix(map,lin,col);
+    if(fuga_humana(&map,lin,col)==-1){
+    	printf("Caminho nao encontrado");
+	}else{
+		printMatrix(map,lin,col);
+	}
     
     freeMatrix(map,lin);
 
@@ -63,7 +65,7 @@ int counter(char *name, int *lin, int *col){
 	char c;
 	*lin=0;
 	*col=0;
-	for(c=fgetc(arq);c!=EOF;c=fgetc(arq)){
+	for(c=fgetc(arq);c!=EOF;c=fgetc(arq)){ //conta linhas e caracteres da primeira linha;
 		if(c=='\n'){
 			(*lin)++;
 		}
@@ -82,17 +84,22 @@ int counter(char *name, int *lin, int *col){
 int readMatrix(char *name, char ***map, int *lin, int *col){
     FILE *arq = fopen(name,"r");
     if(arq == NULL){
-        return 0;
+        return 0; //falha abrir arquivo;
     }
     
-    *map = (char**)malloc((*lin)*sizeof(char*));
+    *map = (char**)malloc((*lin)*sizeof(char*)); //alocacao de memoria do mapa;
 	for(int i=0;i<(*lin);i++){
 		(*map)[i]=(char*)malloc(((*col)+1)*sizeof(char));
 	}
-	for(int i=0;i<(*lin);i++){
+	for(int i=0;i<(*lin);i++){ //ler arquivo na matriz;
 		fgets((*map)[i],((*col)+1),arq);
 		fgetc(arq);
 		(*map)[i][strlen((*map)[i])-1]='\0';
+		for(int j=0;j<(*col);j++){ //limpa caracteres não esperados, substituindo por ' ';
+			if((*map)[i][j]!=' ' && (*map)[i][j]!='R' && (*map)[i][j]!='Z' && (*map)[i][j]!='H'){
+				(*map)[i][j]=' ';
+			}
+		}
 	}
     
     fclose(arq);
@@ -133,6 +140,7 @@ void printMatrix(char** map, int lin, int col){
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 void freeMatrix(char **map, int lin){
@@ -146,52 +154,52 @@ int findHumanZone(char **map, int lin, int col, int *hx, int *hy, int *zx, int *
 	int findH=0,findZ=0;
 	for(int i=0;i<lin;i++){
 		for(int j=0;j<col;j++){
-			if(map[i][j]=='H'){
+			if(map[i][j]=='H'){ //encontra humano;
 				*hx = i;
 				*hy = j;
 				findH=1;
-			}else if(map[i][j]=='Z'){
+			}else if(map[i][j]=='Z'){ //encontra zona;
 				*zx = i;
 				*zy = j;
 				findZ = 1;
 			}
-			if(findH && findZ){
+			if(findH && findZ){ //retorna sucesso;
 				return 1;
 			}
 		}
 	}
-	return 0;
+	return 0; //nao encontrado;
 }
 
-int isValid(char **map, int lin, int col, int x, int y, int **visited){
+int isValid(char **map, int lin, int col, int x, int y, int **visited){ //verifica se x e y no intervalo, se vazio ou zona e se já foi visitado;
 	return (x>=0 && x<lin && y>=0 && y<col && (map[x][y]==' ' || map[x][y]=='Z') && !visited[x][y]);
 }
 
 int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int endY){
-	int **visited = (int**)calloc(lin,sizeof(int*));
+	int **visited = (int**)calloc(lin,sizeof(int*)); //aloca memoria para a matriz de visitados;
 	for(int i=0;i<lin;i++){
 		visited[i] = (int*)calloc(col,sizeof(int));
 	}
-	int dir[4] = {-1,1,0,0};
+	int dir[4] = {-1,1,0,0}; //direcoes possiveis de uma coordenada;
 	
-	Node *queue = (Node*)malloc(lin*col*sizeof(Node));
+	Node *queue = (Node*)malloc(lin*col*sizeof(Node)); //aloca 'fila' de nos/coordenadas para visitar;
 	int first = 0, last = 0;
 	
-	queue[last++] = (Node){startX, startY, 0, -1, -1};
+	queue[last++] = (Node){startX, startY, 0, -1, -1}; //inicia pelo humano;
 	visited[startX][startY] = 1;
 	
 	Node aux;
-	while(first<last){
+	while(first<last){ //enquanto houver caminho;
 		aux = queue[first++];
-		if(aux.x == endX && aux.y == endY){
+		if(aux.x == endX && aux.y == endY){ //encontrou destino;
 			//recontroi caminho encontrado
 			int cx = aux.x, cy = aux.y;
-			while(aux.px!=-1 && aux.py!=-1){
-				if((*map)[cx][cy]!='Z'){
+			while(aux.px!=-1 && aux.py!=-1){ //enquanto nao for o inicio;
+				if((*map)[cx][cy]!='Z'){ //se nao for a zona, marca caminho
 					(*map)[cx][cy] = '*';
 				}
 				
-				for(int i=0;i<last;i++){
+				for(int i=0;i<last;i++){ //procura antecessor da coordenada atual;
 					if(queue[i].x==aux.px && queue[i].y==aux.py){
 						aux = queue[i];
 						cx = aux.x;
@@ -200,15 +208,15 @@ int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int end
 					}
 				}
 			}
-			return queue[first-1].dist;
+			return queue[first-1].dist; //retorna distancia;
 		}
 		
 		for(int i=0;i<4;i++){
 			int nx = aux.x + dir[i];
 			int ny = aux.y + dir[3-i]; //percorre de tras para frente;
 			if(isValid(*map,lin,col,nx,ny,visited)){
-				visited[nx][ny] = 1;
-				queue[last++] = (Node){nx,ny,aux.dist+1,aux.x,aux.y};
+				visited[nx][ny] = 1; //marca visita;
+				queue[last++] = (Node){nx,ny,aux.dist+1,aux.x,aux.y}; //adiciona na fila;
 			}
 		}
 	}
@@ -218,10 +226,12 @@ int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int end
 
 int fuga_humana(char ***map,int lin, int col){
 	int hx,hy,zx,zy;
-	if(!findHumanZone(*map,lin,col,&hx,&hy,&zx,&zy)){
-		return 0;
+	if(!findHumanZone(*map,lin,col,&hx,&hy,&zx,&zy)){ //verifica se ha humano e zona na matriz;
+		return -1;
 	}
 
-	int result = bfs(map,lin,col,hx,hy,zx,zy);
+	int result = bfs(map,lin,col,hx,hy,zx,zy); //chama busca em largura e recebe a distancia;
 	printf("bfs = %d\n",result);
+	
+	return result;
 }
