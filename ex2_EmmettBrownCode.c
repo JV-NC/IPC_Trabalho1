@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int busca_fibonacci(int n, int x); //calcula n termos de fibonacci e busca x entre os termos, retorna indice de x ou -1 caso não encontrar;
-int binary_search(long *v, int n, long x); //busca binária do termo x no vetor;
+int busca_fibonacci(int n, int x); //calcula n termos de fibonacci e busca x entre os termos, retorna indice de x ou -1 caso nao encontrar;
+int binary_search(long *v, int n, long x); //busca binaria do termo x no vetor;
 
 int main(){
     int n,x;
@@ -13,7 +13,7 @@ int main(){
         if(n<=0 || x<0){
             printf("Valores invalidos!\n");
         }
-    }while(n<=0 || x<0); //repetição até obter valores viáveis;
+    }while(n<=0 || x<0); //repeticao ate obter valores viaveis;
     
     int i = busca_fibonacci(n,x);
     printf("Indice = %d",i);
@@ -22,7 +22,7 @@ int main(){
 
 int busca_fibonacci(int n, int x){
     if(n<=0){
-        return -1; //valor n inválido;
+        return -1; //valor n invalido;
     }
 
     long *v = (long*)malloc(n*sizeof(long));
@@ -35,7 +35,7 @@ int busca_fibonacci(int n, int x){
         v[i]=v[i-1]+v[i-2];
     }
 
-    return binary_search(v,n,x); //chama busca binária;
+    return binary_search(v,n,x); //chama busca binaria;
 }
 
 int binary_search(long *v, int n, long x){

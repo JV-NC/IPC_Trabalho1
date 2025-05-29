@@ -5,10 +5,10 @@
 
 #define MAX 40 
 
-int verificar_palindromo(char *s, int n); //função verificar palindromo, retorna 1(True) se verdadeiro, 0(False) caso falso;
-void lower_string(char* s, int n); //função que torna todos os caracteres minúsculos;
-void clean_punctuation(char *s, int n); //função que limpa a pontuação e espaço da string;
-void reverse_string(char *s, int n); //função que inverte a string;
+int verificar_palindromo(char *s, int n); //funcao verificar palindromo, retorna 1(True) se verdadeiro, 0(False) caso falso;
+void lower_string(char* s, int n); //funcao que torna todos os caracteres minusculos;
+void clean_punctuation(char *s, int n); //funcao que limpa a pontuacao e espaco da string;
+void reverse_string(char *s, int n); //funcao que inverte a string;
 
 int main(){
     char *s = (char*)malloc(MAX*sizeof(char));
@@ -58,7 +58,7 @@ void clean_punctuation(char *s, int n){
     int i=0, j=0;
 
     while(s[i]!='\0'){
-        if(!ispunct(s[i]) && !isspace(s[i])){ //se não for pontuação ou espaço vazio, mantem na string;
+        if(!ispunct(s[i]) && !isspace(s[i])){ //se nao for pontuacao ou espaco vazio, mantem na string;
             s[j++] = s[i];
         }
         i++;
