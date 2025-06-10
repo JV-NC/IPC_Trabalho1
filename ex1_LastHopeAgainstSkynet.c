@@ -20,8 +20,8 @@ int readMatrix(char *name, char ***map, int *lin, int *col); //le o arquivo e pr
 void printMatrix(char** map, int lin, int col); //imprime matriz;
 void freeMatrix(char **map, int lin); //libera memoria matriz;
 int findHumanZone(char **map, int lin, int col, int *hx, int *hy, int *zx, int *zy); //encontra o humano e a zona segura na matriz;
-int isValid(char **map, int lin, int col, int x, int y, int **visited); //verifica se a posição da matriz é válida para o caminho;
-int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int endY); //busca em largura, retorna distância e preenche caminho;
+int isValid(char **map, int lin, int col, int x, int y, int **visited); //verifica se a posiï¿½ï¿½o da matriz ï¿½ vï¿½lida para o caminho;
+int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int endY); //busca em largura, retorna distï¿½ncia e preenche caminho;
 int fuga_humana(char ***map,int lin, int col); //aplica findHumanZone e bfs;
 
 int main(){
@@ -37,10 +37,11 @@ int main(){
     }
     
     printMatrix(map,lin,col);
-    
-    if(fuga_humana(&map,lin,col)==-1){
+    int dist = fuga_humana(&map,lin,col);
+    if(dist==-1){
     	printf("Caminho nao encontrado");
 	}else{
+		printf("\tdistancia = %d\n",dist);
 		printMatrix(map,lin,col);
 	}
     
@@ -95,7 +96,7 @@ int readMatrix(char *name, char ***map, int *lin, int *col){
 		fgets((*map)[i],((*col)+1),arq);
 		fgetc(arq);
 		(*map)[i][strlen((*map)[i])-1]='\0';
-		for(int j=0;j<(*col);j++){ //limpa caracteres não esperados, substituindo por ' ';
+		for(int j=0;j<(*col);j++){ //limpa caracteres nï¿½o esperados, substituindo por ' ';
 			if((*map)[i][j]!=' ' && (*map)[i][j]!='R' && (*map)[i][j]!='Z' && (*map)[i][j]!='H'){
 				(*map)[i][j]=' ';
 			}
@@ -171,7 +172,7 @@ int findHumanZone(char **map, int lin, int col, int *hx, int *hy, int *zx, int *
 	return 0; //nao encontrado;
 }
 
-int isValid(char **map, int lin, int col, int x, int y, int **visited){ //verifica se x e y no intervalo, se vazio ou zona e se já foi visitado;
+int isValid(char **map, int lin, int col, int x, int y, int **visited){ //verifica se x e y no intervalo, se vazio ou zona e se jï¿½ foi visitado;
 	return (x>=0 && x<lin && y>=0 && y<col && (map[x][y]==' ' || map[x][y]=='Z') && !visited[x][y]);
 }
 
@@ -208,6 +209,12 @@ int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int end
 					}
 				}
 			}
+			//liberar memoria
+			for (int i = 0; i < lin; i++) {
+				free(visited[i]);
+			}
+			free(visited);
+			free(queue);
 			return queue[first-1].dist; //retorna distancia;
 		}
 		
@@ -220,6 +227,13 @@ int bfs(char ***map, int lin, int col, int startX, int startY, int endX, int end
 			}
 		}
 	}
+
+	//liberar memoria
+	for (int i = 0; i < lin; i++) {
+		free(visited[i]);
+	}
+	free(visited);
+	free(queue);
 	
 	return -1;
 }
@@ -231,7 +245,6 @@ int fuga_humana(char ***map,int lin, int col){
 	}
 
 	int result = bfs(map,lin,col,hx,hy,zx,zy); //chama busca em largura e recebe a distancia;
-	printf("bfs = %d\n",result);
 	
 	return result;
 }
